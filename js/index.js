@@ -1,6 +1,8 @@
 (function() {
   'use strict';
 
+  var stripe = Stripe('pk_test_6pRNASCoBOKtIshFeQd4XMUh');
+
   var elements = stripe.elements({
     fonts: [
       {
@@ -37,7 +39,8 @@
       },
     },
   });
+  
   card.mount('#card-element');
 
-  registerElements([card], 'example1');
+
 })();
