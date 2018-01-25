@@ -5,7 +5,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
 
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-	<link href="nekolan-ticket.css" rel="stylesheet">
+	<link href="stylesheets/nekolan-ticket.css" rel="stylesheet">
 
 
 	<script src="https://js.stripe.com/v3/"></script>
@@ -13,23 +13,34 @@
 	<title>NekoLan #3 - Tickets</title>
 </head>
 <body>
+	<div id="stars1">&nbsp;</div>
+	<div id="stars2">&nbsp;</div>
+	<div id="stars3">&nbsp;</div>
+
+	<div class="layer" id="box-parallax">
+		<div id="flare_1">&nbsp;</div>
+		<div id="planet_1">&nbsp;</div>
+		<div id="planet_2">&nbsp;</div>
+		<div id="overlay">&nbsp;</div>
+	</div>
+
 	<div class="cover-container d-flex h-100 p-3 mx-auto flex-column">
 
 		<header class="masthead mb-auto">
 			<div class="inner">
-				<h3 class="masthead-brand">NekoLan #3 - Tickets</h3>
+				<h2 class="masthead-brand">NekoLan #3</h2>
 				<nav class="nav nav-masthead justify-content-center">
-					<a class="nav-link" href="#">Discord</a>
-					<a class="nav-link" href="#">Facebook</a>
+					<a class="nav-link" target="_blank" href="https://discord.gg/XGHcM95">Discord</a>
+					<a class="nav-link" target="_blank" href="https://www.facebook.com/nekolan.party/">Facebook</a>
 				</nav>
 			</div>
 		</header>
 
-		<main role="main" class="inner cover">
-			<h1 class="cover-heading">Ticket NekoLan #3</h1>
-			<p class="lead">Vous pouvez acheter votre ticket en prévente ici.</p>
-			<p class="lead">
-				<form action="https://wt-928c20363e48533aab7b42b81b5ece88-0.run.webtask.io/stripe-payment/payment?currency=EUR&amount=2000&description=NekoLAN3" method="POST">
+		<main role="main" class="inner cover text-center">
+			<h1 class="cover-heading text-center">Prévente</h1>
+			<p class="lead">Vous pouvez acheter votre ticket pour la Lan&nbsp;!</p>
+			<div class="lead stripe-wrapper">
+				<form action="https://wt-928c20363e48533aab7b42b81b5ece88-0.run.webtask.io/stripe-payment/payment-no-content" method="POST">
 				    <script
 				      src="https://checkout.stripe.com/checkout.js" class="stripe-button"
 				      data-key="pk_test_BLxF2dzLJXgmCpeuHN9LMeff"
@@ -42,19 +53,19 @@
 				      data-label="Payer par carte">
 				    </script>
 				  </form>
-			</p>
+			</div>
 		</main>
 
 		<footer class="mastfoot mt-auto">
-			<div class="inner">
-				<p>Nekolan template</a>, by <a href="https://twitter.com/mdo">@VaanDeFanel</a>.</p>
+			<div class="inner text-center">
+				<p>NekoLan</a>, by <a target="_blank" href="https://twitter.com/vaandefanel">@VaanDeFanel</a>.</p>
 			</div>
 		</footer>
 	</div>
 
 	<!-- Optional JavaScript -->
 	<!-- jQuery first, then Popper.js, then Bootstrap JS -->
-	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+	<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 

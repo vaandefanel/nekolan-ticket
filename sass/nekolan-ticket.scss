@@ -1,3 +1,24 @@
+@import 'compass';
+
+
+// n is number of stars required
+@function multiple-box-shadow ($n) 
+{
+
+
+  $value: '#{random(2000)}px #{random(2000)}px #FFF';
+  @for $i from 2 through $n
+  {
+    $value: '#{$value} , #{random(2000)}px #{random(2000)}px #FFF';
+  }
+
+  @return unquote($value)
+}
+
+$shadows-small:  multiple-box-shadow(700);
+$shadows-medium: multiple-box-shadow(200);
+$shadows-big:    multiple-box-shadow(100);
+
 #box-parallax
 {
   height: 100%;
@@ -8,11 +29,10 @@
 
 }
 
-
 #flare_1
 {
-  width: 20%;
-  height: 20%;
+  width: 180px;
+  height: 180px;
   position: absolute;
   display: block;
   background-repeat: no-repeat;
@@ -28,12 +48,29 @@
 
 #planet_1
 {
-  width: 20%;
-  height: 20%;
+  width: 200px;
+  height: 200px;
   position: absolute;
   display: block;
   background-repeat: no-repeat;
   background-image: url('../img/planet_4.png');
+  background-size: contain;
+  background-origin: center middle;
+  overflow: visible;
+  background-color: transparent;
+  /*background-color: blue;*/
+  opacity: 1;
+
+}
+
+#planet_2
+{
+  width: 500px;
+  height: 500px;
+  position: absolute;
+  display: block;
+  background-repeat: no-repeat;
+  background-image: url('../img/planet_3.png');
   background-size: contain;
   background-origin: center middle;
   overflow: visible;
@@ -101,7 +138,7 @@
 @keyframes animStar{
   from{transform: translateY(0px)}
   to{transform: translateY(-2000px)}
-}
+  }
 
 
 
