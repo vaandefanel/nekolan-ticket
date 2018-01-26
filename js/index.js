@@ -42,7 +42,7 @@ $(document).ready(function($){
 	{
 		mouseParallax ( '#sun',  0, 0, x, y, 50 );
 		mouseParallax ( '#flare_1',  0.4, -0.4, x, y, -0.008 );
-		mouseParallax ( '#planet_1',  -0.6, 0.4, x, y, 0.05 );
+		mouseParallax ( '#planet_1',  -0.6, 0.4, x, y, 0.04 );
 		mouseParallax ( '#planet_2',  -0.85, -0.85, x, y, 0.005 );
 	}
 
