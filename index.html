@@ -4,11 +4,9 @@
 	<meta charset="utf-8"/>
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
 
+	<link href="//cdn.rawgit.com/noelboss/featherlight/1.7.12/release/featherlight.min.css" type="text/css" rel="stylesheet" />
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 	<link href="stylesheets/nekolan-ticket.css" rel="stylesheet">
-
-
-	<script src="https://js.stripe.com/v3/"></script>
 
 	<title>NekoLAN #3 - Tickets</title>
 </head>
@@ -40,8 +38,28 @@
 			<h1 class="cover-heading text-center">Prévente</h1>
 			<p class="lead">Vous pouvez acheter votre ticket pour la NekoLAN 3ème édition&nbsp;!</p>
 			<p>Certaines cartes avec 3D-secure obligatoire risquent de ne pas fonctionner correctement. Dans le doute vous pouvez tester :) Les cartes Mastercards et Visa sont pris en charge.</p>
-			<div class="lead stripe-wrapper">
-				<form action="https://wt-928c20363e48533aab7b42b81b5ece88-0.run.webtask.io/stripe-payment/payment-no-content" method="POST">
+			<div class="lead" id="stripe-wrapper">
+
+				<form action="/charge" method="post" id="payment-form">
+					<div class="form-group">
+						<input id="field-name" type="text" placeholder="Nom/Pseudonyme" required="" class="form-control">
+					</div>
+					<div class="form-row form-group">
+						<div id="card-element" class="form-control">
+							<!-- a Stripe Element will be inserted here. -->
+						</div>
+						<!-- Used to display form errors -->
+						
+					</div>
+					<div class="form-group">
+						<div id="card-errors" role="alert"></div>
+					</div>
+
+
+					<button class="btn btn-primary">Payer (20€)</button>
+				</form>
+
+				<!-- <form action="https://wt-928c20363e48533aab7b42b81b5ece88-0.run.webtask.io/stripe-payment/payment-no-content" method="POST">
 				    <script
 				      src="https://checkout.stripe.com/checkout.js" class="stripe-button"
 				      data-key="pk_live_wyBQsaPIw6OJOGcR6ajMRqiN"
@@ -53,8 +71,14 @@
 				      data-allow-remember-me="false"
 				      data-label="Payer par carte">
 				    </script>
-				  </form>
+				  </form> -->
+
 			</div>
+
+			<div id="processing">
+				<p class="text-center">Processing...</p>
+			</div>
+
 		</main>
 
 		<footer class="mastfoot mt-auto">
@@ -69,11 +93,11 @@
 	<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+	
+	<script src="//cdn.rawgit.com/noelboss/featherlight/1.7.12/release/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
 
-
+	<script src="https://js.stripe.com/v3/"></script>
 	<script src="js/index.js"></script>
-
-
 
 </body>
 </html>
