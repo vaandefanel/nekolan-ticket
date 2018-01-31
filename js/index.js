@@ -65,41 +65,9 @@ $(document).ready(function($){
 
 
 
-	// var form = document.getElementById('payment-form');
-	// form.addEventListener('submit', function(event) {
-
-	// 	event.preventDefault();
-
-	// 	stripe.createToken(card).then(function(result) {
-	// 		if (result.error)
-	// 		{
-	// 			// Inform the customer that there was an error
-	// 			var errorElement = document.getElementById('card-errors');
-	// 			errorElement.textContent = result.error.message;
-	// 		}
-	// 		else
-	// 		{
-	// 			// Send the token to your server
-	// 			stripeTokenHandler(result.token);
-	// 		}
-	// 	});
-	// });
-
-	// function stripeTokenHandler(token) {
-	// 	// Insert the token ID into the form so it gets submitted to the server
-	// 	var form = document.getElementById('payment-form');
-	// 	var hiddenInput = document.createElement('input');
-	// 	hiddenInput.setAttribute('type', 'hidden');
-	// 	hiddenInput.setAttribute('name', 'stripeToken');
-	// 	hiddenInput.setAttribute('value', token.id);
-	// 	form.appendChild(hiddenInput);
-
-	// 	// Submit the form
-	// 	form.submit();
-	// }
 
 
-	function stripeTokenHandler_ajax(token) {
+	function stripeSourceHandler(source) {
 		// Insert the token ID into the form so it gets submitted to the server
 		//var form = $('#payment-form');
 
@@ -109,18 +77,55 @@ $(document).ready(function($){
 		// hiddenInput.setAttribute('value', token.id);
 		// form.appendChild(hiddenInput);
 
+		console.log(source);
+
+		if(source.card.three_d_secure==='required')
+		{
+
+			stripe.createSource({
+				type: 'three_d_secure',
+				amount: 2000,
+				currency: "eur",
+				three_d_secure: {
+					card: source.id
+				},
+				redirect: {
+					return_url: "https://wt-928c20363e48533aab7b42b81b5ece88-0.run.webtask.io/stripe-payment-test/payment-return-url"
+				}
+			}).then(function(result) {
+
+				if(result.error)
+				{
+					console.log('3dsecure-error');
+				}
+				else
+				{
+					console.log('3d secure source creation...');
+					console.log(result.source);
+
+					$.featherlight({
+						iframe: result.source.redirect.url,
+						iframeWidth: '800',
+						iframeHeight: '600'
+					});
+				}
+				
+				// handle result.error or result.source
+			});
+		}
+
 		// Submit the form
-		$.ajax({method:'POST',
-			data:{stripeToken:token.id},
-			url:'https://wt-928c20363e48533aab7b42b81b5ece88-0.run.webtask.io/stripe-payment-test/payment-test',
-		}).done(function(msg) {
-			$("main").html('<div class="alert alert-success" role="alert">'+msg+'</div>');
-		})
-		.fail(function(jqXHR, textStatus, errorThrown) {
-			console.log(errorThrown);
-			$("main").html('<div class="alert alert-danger" role="alert">Désolé, il y a eu un problème !<br/>'+jqXHR.responseText+'</div>');
-		})
-		.always(function(response) {});
+		// $.ajax({method:'POST',
+		// 	data:{stripeSource:source.id},
+		// 	url:'https://wt-928c20363e48533aab7b42b81b5ece88-0.run.webtask.io/stripe-payment-test/payment-source',
+		// }).done(function(msg) {
+		// 	$("main").html('<div class="alert alert-success" role="alert">'+msg+'</div>');
+		// })
+		// .fail(function(jqXHR, textStatus, errorThrown) {
+		// 	console.log(errorThrown);
+		// 	$("main").html('<div class="alert alert-danger" role="alert">Désolé, il y a eu un problème !<br/>'+jqXHR.responseText+'</div>');
+		// })
+		// .always(function(response) {});
 	}
 
 
@@ -153,7 +158,23 @@ $(document).ready(function($){
 		// Use Stripe.js to create a token. We only need to pass in one Element
 		// from the Element group in order to create a token. We can also pass
 		// in the additional customer data we collected in our form.
-		stripe.createToken(card, additionalData).then(function(result) {
+		// stripe.createToken(card, additionalData).then(function(result) {
+		// 	// Stop loading!
+		// 	stripe_wrapper.removeClass('submitting');
+
+		// 	if(result.error)
+		// 	{
+		// 		$('#card-errors').html(result.error.message);
+		// 		stripe_wrapper.addClass('submitted');
+		// 	}
+		// 	else
+		// 	{
+		// 		enableInputs();
+		// 		stripeTokenHandler_ajax(result.token);
+		// 	}
+		// });
+
+		stripe.createSource(card, additionalData).then(function(result) {
 			// Stop loading!
 			stripe_wrapper.removeClass('submitting');
 
@@ -165,7 +186,7 @@ $(document).ready(function($){
 			else
 			{
 				enableInputs();
-				stripeTokenHandler_ajax(result.token);
+				stripeSourceHandler(result.source);
 			}
 		});
 
