@@ -1,15 +1,11 @@
-// function sleep(milliseconds) {
-//   var start = new Date().getTime();
-//   for (var i = 0; i < 1e7; i++) {
-//     if ((new Date().getTime() - start) > milliseconds){
-//       break;
-//     }
-//   }
-// }
-
-
-
-
+ function sleep(milliseconds) {
+   var start = new Date().getTime();
+   for (var i = 0; i < 1e7; i++) {
+     if ((new Date().getTime() - start) > milliseconds){
+       break;
+     }
+   }
+}
 
 $(document).ready(function($){
 	'use strict';
@@ -22,11 +18,47 @@ $(document).ready(function($){
 	var stripe_wrapper=$('#stripe-wrapper');
 	var form=$("#payment-form");
 
+	var finalmessage=$("#stripe-wrapper .final-message");
+	var chargemessage=$("#stripe-wrapper .charge-message");
+	var stripeform=stripe_wrapper.find('form');
+
+	function displayError(msg)
+	{
+		finalmessage.html('<div class="alert alert-danger" role="alert">'+msg+'</div>');
+	}
+
+	function displayInformation(msg)
+	{
+		finalmessage.html('<div class="alert alert-info" role="alert">'+msg+'</div>');
+	}
+
+	function displaySuccess(msg)
+	{
+		finalmessage.html('<div class="alert alert-success" role="alert">'+msg+'</div>');
+	}
+
+	/*function displayChargeMessage(msg)
+	{
+		chargemessage.html('<div class="alert alert-info" role="alert">'+msg+'</div>');
+	}*/
+
+	function hideform()
+	{
+		stripeform.hide();
+	}
+
+	function dealWithCharge(){
+		hideform();
+
+		displaySuccess('Authentication réussie : Le "tout-puissant système" va vous envoyer un email de reçu si le paiement s\'est bien passe ou un email d\'échec de paiement.<br/>Sinon, contacter l\'incompétent humain qui a codé cette page sur Discord ou Facebook.');
+
+		//chargeClient(); useless => webhook
+		//setTimeout(pollCharge, 3000, sourceid, clientsecret);
+	}
 
 	var style = {
 			base: {
 				color: '#32325d',
-				fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
 				fontSmoothing: 'antialiased',
 				'::placeholder': {
 					color: '#aab7c4'
@@ -64,35 +96,108 @@ $(document).ready(function($){
 	}
 
 
+	/*function pollCharge(sourceid, clientsecret){
+
+		stripe.retrieveSource({id:sourceid,client_secret: clientsecret}).then(function(result) {
+
+			if(result.source.status=='failed')
+			{
+				displayError('Card authentication failed.');
+			}
+			else if(result.source.status=='chargeable')
+			{
+
+			}
+			else if ( result.source.status != 'pending' )
+			{
+				displayError("Status de paiement inattendu : " + source.status);
+			}
+			else
+			{
+				setTimeout(pollCharge, 3000, sourceid, clientsecret);
+			}
+		});
+	}*/
+
+
+
+	function poll3DSource(sourceid, clientsecret){
+
+		console.log('status 3d secure (polling): '+result.source.status);
+
+		stripe.retrieveSource({id:sourceid, client_secret: clientsecret}).then(function(result) {
+
+			if(result.source.status=='failed')
+			{
+				$.featherlight.current().close();
+				displayError('L\'authentication 3d Secure échouée.');
+			}
+			else if(result.source.status=='canceled')
+			{
+				$.featherlight.current().close();
+				displayError('L\'authentication 3d Secure a été annulée.');
+			}
+			else if(result.source.status=='chargeable')
+			{
+				$.featherlight.current().close();
+
+				dealWithCharge();
+			}
+			else if ( result.source.status != 'pending' )
+			{
+				$.featherlight.current().close();
+				displayError("Status 3D Secure inattendu : " + result.source.status);
+			}
+			else
+			{
+				setTimeout(poll3DSource, 3000, sourceid, clientsecret);
+			}
+		});
+	}
 
 
 
 	function stripeSourceHandler(source) {
-		// Insert the token ID into the form so it gets submitted to the server
-		//var form = $('#payment-form');
 
-		// var hiddenInput = document.createElement('input');
-		// hiddenInput.setAttribute('type', 'hidden');
-		// hiddenInput.setAttribute('name', 'stripeToken');
-		// hiddenInput.setAttribute('value', token.id);
-		// form.appendChild(hiddenInput);
-
+		console.log('card source result:');
 		console.log(source);
 
 		if(source.card.three_d_secure==='required')
 		{
+			console.log('create 3d secure source');
+			sleep(1000);
 
-			stripe.createSource({
+			var name = form.find('#field-name').val();
+			var address1 = form.find('#field-address').val();
+			var city = form.find('#field-city').val();
+			var state = form.find('#field-state').val();
+			var zip = form.find('#field-zip').val();
+			var email = form.find('#field-email').val();
+
+			var additionalData = {
 				type: 'three_d_secure',
 				amount: 2000,
 				currency: "eur",
+
+
+				
+				address_line1: address1 ? address1 : undefined,
+				address_city: city ? city : undefined,
+				address_state: state ? state : undefined,
+				address_zip: zip ? zip : undefined,
+				owner: {
+					email: email ? email : undefined
+				},
+
 				three_d_secure: {
 					card: source.id
 				},
 				redirect: {
 					return_url: "https://wt-928c20363e48533aab7b42b81b5ece88-0.run.webtask.io/stripe-payment-test/payment-return-url"
 				}
-			}).then(function(result) {
+			};
+
+			stripe.createSource(additionalData).then(function(result) {
 
 				if(result.error)
 				{
@@ -101,7 +206,13 @@ $(document).ready(function($){
 				else
 				{
 					console.log('3d secure source creation...');
+					console.log('status 3d secure (before polling): '+result.source.status);
 					console.log(result.source);
+
+					poll3DSource(
+						result.source.id,
+						result.source.client_secret
+					);
 
 					$.featherlight({
 						iframe: result.source.redirect.url,
@@ -113,25 +224,16 @@ $(document).ready(function($){
 				// handle result.error or result.source
 			});
 		}
-
-		// Submit the form
-		// $.ajax({method:'POST',
-		// 	data:{stripeSource:source.id},
-		// 	url:'https://wt-928c20363e48533aab7b42b81b5ece88-0.run.webtask.io/stripe-payment-test/payment-source',
-		// }).done(function(msg) {
-		// 	$("main").html('<div class="alert alert-success" role="alert">'+msg+'</div>');
-		// })
-		// .fail(function(jqXHR, textStatus, errorThrown) {
-		// 	console.log(errorThrown);
-		// 	$("main").html('<div class="alert alert-danger" role="alert">Désolé, il y a eu un problème !<br/>'+jqXHR.responseText+'</div>');
-		// })
-		// .always(function(response) {});
+		else //cards (visa mastercard ...)
+		{
+			//charge is done with webhook
+			console.log('carte classique détectée');
+			dealWithCharge();
+		}
 	}
 
-
-
 	// Listen on the form's 'submit' handler...
-	$('#payment-form').submit( function(e) {
+ 	form.submit( function(e) {
 
 		e.preventDefault();
 
@@ -142,39 +244,36 @@ $(document).ready(function($){
 		disableInputs();
 
 		// Gather additional customer data we may have collected in our form.
-		var name = $(this).find('#field-name');
-		var address1 = $(this).find('#field-address');
-		var city = $(this).find('#field-city');
-		var state = $(this).find('#field-state');
-		var zip = $(this).find('#field-zip');
+		var name = form.find('#field-name').val();
+		var address1 = form.find('#field-address').val();
+		var city = form.find('#field-city').val();
+		var state = form.find('#field-state').val();
+		var zip = form.find('#field-zip').val();
+		var email = form.find('#field-email').val();
+
+		console.log(form);
+
 		var additionalData = {
-			name: name ? name.value : undefined,
-			address_line1: address1 ? address1.value : undefined,
-			address_city: city ? city.value : undefined,
-			address_state: state ? state.value : undefined,
-			address_zip: zip ? zip.value : undefined,
+			amount: 2000,
+			currency: "eur",
+			
+			address_line1: address1 ? address1 : undefined,
+			address_city: city ? city : undefined,
+			address_state: state ? state : undefined,
+			address_zip: zip ? zip : undefined,
+			owner: {
+				email: email ? email : undefined
+			}
 		};
 
-		// Use Stripe.js to create a token. We only need to pass in one Element
-		// from the Element group in order to create a token. We can also pass
-		// in the additional customer data we collected in our form.
-		// stripe.createToken(card, additionalData).then(function(result) {
-		// 	// Stop loading!
-		// 	stripe_wrapper.removeClass('submitting');
+		/*owner: {
+				email: email ? email : undefined
+			}*/
 
-		// 	if(result.error)
-		// 	{
-		// 		$('#card-errors').html(result.error.message);
-		// 		stripe_wrapper.addClass('submitted');
-		// 	}
-		// 	else
-		// 	{
-		// 		enableInputs();
-		// 		stripeTokenHandler_ajax(result.token);
-		// 	}
-		// });
-
-		stripe.createSource(card, additionalData).then(function(result) {
+		console.log('create card (classic) source');
+		console.log(additionalData);
+		stripe.createSource(card, additionalData
+			).then(function(result) {
 			// Stop loading!
 			stripe_wrapper.removeClass('submitting');
 
@@ -193,152 +292,11 @@ $(document).ready(function($){
 		return false;
 	});
 
-	//old
-
-	// function displayProcessing() {
-	// 	$("#processing").css({display : 'block'});
-
-	// 	$("#charge-form").css({display : 'none'});
-	// 	$("#result").css({display : 'none'});
-	// }
-
-	// function displayResult(resultText) {
-	// 	$("#processing").css({display : 'none'});
-
-	// 	$("#charge-form").css({display: 'block'});
-	// 	$("#result").css({display:'block'});
-	// 	$("#result").html( resultText );
-	// }
-
-	// function stripeCardResponseHandler(status, response) {
-
-	// 	console.log(response);
-
-	// 	if (response.error) {
-	// 		var message = response.error.message;
-	// 		displayResult("Unexpected card source creation response status: " + status + ". Error: " + message);
-	// 		return;
-	// 	}
-
-	// 	// check if the card supports 3DS
-	// 	if (response.card.three_d_secure == 'required') {
-	// 		stripe.createsource({
-	// 			type: 'three_d_secure',
-	// 			amount: 2000,
-	// 			currency: "eur",
-	// 			three_d_secure: {
-	// 				card: response.id
-	// 			},
-	// 			redirect: {
-	// 				return_url: null
-	// 			}
-	// 		}, stripe3DSecureResponseHandler);
-	// 	}
-	// 	else
-	// 	{
-
-	// 	}
-
-	// }
-
-	// function stripe3DSecureResponseHandler(status, response) {
-
-	// 	console.log(response);
-
-	// 	if (response.error) {
-	// 		var message = response.error.message;
-	// 		displayResult("Unexpected 3DS source creation response status: " + status + ". Error: " + message);
-	// 		return;
-	// 	}
-
-	// 	// check the 3DS source's status
-	// 	if (response.status == 'chargeable') {
-	// 		displayResult("This card does not support 3D Secure authentication, but liability will be shifted to the card issuer.");
-	// 		return;
-	// 	} else if (response.status != 'pending') {
-	// 		displayResult("Unexpected 3D Secure status: " + response.status);
-	// 		return;
-	// 	}
-
-	// 	// start polling the source (to detect the change from pending
-	// 	// to either chargeable or failed)
-	// 	Stripe.source.poll(
-	// 		response.id,
-	// 		response.client_secret,
-	// 		stripe3DSStatusChangedHandler
-	// 		);
-
-	// 	// open the redirect URL in an iframe
-	// 	// (in this example we're using Featherlight for convenience,
-	// 	// but this is of course not a requirement)
-	// 	$.featherlight({
-	// 		iframe: response.redirect.url,
-	// 		iframeWidth: '800',
-	// 		iframeHeight: '600'
-	// 	});
-	// }
-
-	// function stripe3DSStatusChangedHandler(status, source) {
-	// 	if (source.status == 'chargeable') {
-	// 		$.featherlight.current().close();
-	// 		var msg = '3D Secure authentication succeeded: ' + source.id + '. In a real app you would send this source ID to your backend to create the charge.';
-	// 		displayResult(msg);
-	// 	} else if (source.status == 'failed') {
-	// 		$.featherlight.current().close();
-	// 		var msg = '3D Secure authentication failed.';
-	// 		displayResult(msg);
-	// 	} else if (source.status != 'pending') {
-	// 		$.featherlight.current().close();
-	// 		var msg = "Unexpected 3D Secure status: " + source.status;
-	// 		displayResult(msg);
-	// 	}
-	// }
 
 
-	// var handler = stripe.configure({
-	// 		key: stripePublishableKey,
-	// 		locale: 'fr',
-	// 		token: function(token) {
 
-	// 			stripe.createSource({
-	// 				type: 'card',
-	// 				token: token.id
-	// 			}, stripeCardResponseHandler);
 
-	// 			displayProcessing();
 
-	// 			// $.ajax({method:'POST',
-	// 			// 	data:{stripeToken:token.id},
-	// 			// 	url:'https://wt-928c20363e48533aab7b42b81b5ece88-0.run.webtask.io/stripe-payment-test/payment-test',
-	// 			// }).done(function(response) {
-	// 			// 	$("main").html('<div class="alert alert-success" role="alert">'+response+'</div>');
-	// 			// })
-	// 			// .fail(function(response) {
-	// 			// 	$("main").html('<div class="alert alert-danger" role="alert">Désolé, il y a eu un problème !</div>');
-	// 			// })
-	// 			// .always(function(response) {
-					
-	// 			// });
-	// 	}
-	// });
-
-	// $('#stripe-purchase-button').on('click', function(e) {
-	// 	// Open Checkout with further options:
-	// 	handler.open({
-	// 		name: 'NekoLan',
-	// 		description: 'Réservation NekoLAN#3',
-	// 		currency: 'eur',
-	// 		zipCode: true,
-	// 		amount: 2000,
-	// 		allowRememberMe: false
-	// 	});
-	// 	e.preventDefault();
-	// });
-
-	// Close Checkout on page navigation:
-	// window.addEventListener('popstate', function() {
-	// 	handler.close();
-	// });
 
 	var parallaxBox = $( '#box-parallax' );
 
