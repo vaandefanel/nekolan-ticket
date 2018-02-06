@@ -50,7 +50,7 @@ $(document).ready(function($){
 	function dealWithCharge(){
 		hideform();
 
-		displaySuccess('Authentication réussie : Le "tout-puissant système" va vous envoyer un email de reçu si le paiement s\'est bien passe ou un email d\'échec de paiement.<br/>Sinon, contacter l\'incompétent humain qui a codé cette page sur Discord ou Facebook.');
+		displayInformation('Authentication réussie : Vous allez recevoir envoyer un email de reçu si le paiement s\'est bien passé.<br/>Dans le cas contraire, vous recevrez un email d\'échec de paiement.<br/>Sinon, contacter l\'incompétent humain qui a codé cette page sur Discord ou Facebook.');
 
 		//chargeClient(); useless => webhook
 		//setTimeout(pollCharge, 3000, sourceid, clientsecret);
@@ -123,14 +123,12 @@ $(document).ready(function($){
 
 	function poll3DSource(sourceid, clientsecret){
 
-		console.log('status 3d secure (polling): '+result.source.status);
-
 		stripe.retrieveSource({id:sourceid, client_secret: clientsecret}).then(function(result) {
 
 			if(result.source.status=='failed')
 			{
 				$.featherlight.current().close();
-				displayError('L\'authentication 3d Secure échouée.');
+				displayError('L\'authentication 3d Secure a échouée.');
 			}
 			else if(result.source.status=='canceled')
 			{
