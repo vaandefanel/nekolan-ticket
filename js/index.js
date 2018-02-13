@@ -1,4 +1,4 @@
- function sleep(milliseconds) {
+function sleep(milliseconds) {
    var start = new Date().getTime();
    for (var i = 0; i < 1e7; i++) {
      if ((new Date().getTime() - start) > milliseconds){
@@ -11,6 +11,7 @@ $(document).ready(function($){
 	'use strict';
 
 	var stripePublishableKey='pk_test_BLxF2dzLJXgmCpeuHN9LMeff';
+	var nekolan_webhookurl='https://wt-928c20363e48533aab7b42b81b5ece88-0.run.webtask.io/stripe-payment-test';
 
 	var stripe = new Stripe(stripePublishableKey);
 	var elements = stripe.elements();
@@ -47,13 +48,53 @@ $(document).ready(function($){
 		stripeform.hide();
 	}
 
-	function dealWithCharge(){
+	function dealWithChargeAsynchronous(){
 		hideform();
 
-		displayInformation('Authentication réussie : Vous allez recevoir envoyer un email de reçu si le paiement s\'est bien passé.<br/>Dans le cas contraire, vous recevrez un email d\'échec de paiement.<br/>Sinon, contacter l\'incompétent humain qui a codé cette page sur Discord ou Facebook.');
+		displayInformation('Authentication réussie : Vous allez recevoir un email de reçu si le paiement s\'est bien passé.<br/>Dans le cas contraire, vous recevrez un email d\'échec de paiement.<br/>Sinon, contacter l\'incompétent humain qui a codé cette page sur Discord ou Facebook.');
 
-		//chargeClient(); useless => webhook
+		//displayInformation('Authentication réussie : prélèvement en cours...');
+
+		//chargeClient();
 		//setTimeout(pollCharge, 3000, sourceid, clientsecret);
+	}
+
+	function dealWithChargeSynchronous(sourceid){
+		hideform();
+
+		displayInformation('Prélèvement en cours...');
+
+		console.log('sourceid to charge :');
+		console.log(sourceid);
+
+		chargeClient(sourceid);
+		//setTimeout(pollCharge, 3000, sourceid, clientsecret);
+	}
+
+	function chargeClient(sourceid)
+	{
+		sleep(1500);
+
+		var name = form.find('#field-name').val();
+		var email = form.find('#field-email').val();
+
+		$.ajax({type: 'POST',
+	 			url:nekolan_webhookurl+'/charge-now',
+	 			contentType: 'application/json', 
+    			data: JSON.stringify({name:name, email:email, source:sourceid})
+	 	})
+	 	.done(function( result ) {
+	 		console.log( 'charge ok' );
+	 		displaySuccess("Paiement effectué avec succès.");
+	 	})
+	 	.fail(function( xhr, status, errorThrown ) {
+
+	 		displayError("Échec du paiement, erreur inattendue.");
+
+	 		console.log( "Error: " + errorThrown );
+	 		console.log( "Status: " + status );
+	 		console.log( xhr );
+	 	});
 	}
 
 	var style = {
@@ -85,7 +126,14 @@ $(document).ready(function($){
 		}
 	});
 
-
+	/*$(document).on("keypress", 'form', function (e) {
+		var code = e.keyCode || e.which;
+		if (code == 13) {
+			console.log('ahah');
+			e.preventDefault();
+			return false;
+		}
+	});*/
 
 	function enableInputs() {
 		$(form).find("input[type='text'], input[type='email'], input[type='tel']").prop('disable',false);
@@ -139,7 +187,7 @@ $(document).ready(function($){
 			{
 				$.featherlight.current().close();
 
-				dealWithCharge();
+				dealWithChargeSynchronous(sourceid);
 			}
 			else if ( result.source.status != 'pending' )
 			{
@@ -176,8 +224,6 @@ $(document).ready(function($){
 				type: 'three_d_secure',
 				amount: 2000,
 				currency: "eur",
-
-
 				
 				address_line1: address1 ? address1 : undefined,
 				address_city: city ? city : undefined,
@@ -191,7 +237,7 @@ $(document).ready(function($){
 					card: source.id
 				},
 				redirect: {
-					return_url: "https://wt-928c20363e48533aab7b42b81b5ece88-0.run.webtask.io/stripe-payment-test/payment-return-url"
+					return_url: nekolan_webhookurl+'/payment-return-url'
 				}
 			};
 
@@ -226,7 +272,7 @@ $(document).ready(function($){
 		{
 			//charge is done with webhook
 			console.log('carte classique détectée');
-			dealWithCharge();
+			dealWithChargeSynchronous(source.id);
 		}
 	}
 
@@ -337,34 +383,5 @@ $(document).ready(function($){
 	});
 
 	applyparallax(0,0);
-
-	// var fct_charge_client=function(){
-
-	// };
-
-
-	// $(window).bind('beforeunload', function(){
-
-	// 	var data = $('form').serializeArray();
-
-	// 	$.ajax({type: 'POST',
-	// 			url:'https://wt-928c20363e48533aab7b42b81b5ece88-0.run.webtask.io/stripe-payment/payment?currency=EUR&amount=2000&description=NekoLAN3',
-	// 			data: data,
-	// 			async: false
-	// 	})
-	// 	.done(function( result ) {
-	// 		$("main").html('<div class="alert alert-success" role="alert">'+result+'</div>');
-	// 	})
-	// 	.fail(function( xhr, status, errorThrown ) {
-	// 		$("main").html('<div class="alert alert-danger" role="alert">Désolé, il y a eu un problème !</div>');
-	// 		console.log( "Error: " + errorThrown );
-	// 		console.log( "Status: " + status );
-	// 		console.dir( xhr );
-	// 	});
-
-	// 	return "";
-
-	// });
-
 
 });
