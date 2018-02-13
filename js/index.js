@@ -10,8 +10,8 @@ function sleep(milliseconds) {
 $(document).ready(function($){
 	'use strict';
 
-	var stripePublishableKey='pk_test_BLxF2dzLJXgmCpeuHN9LMeff';
-	var nekolan_webhookurl='https://wt-928c20363e48533aab7b42b81b5ece88-0.run.webtask.io/stripe-payment-test';
+	var stripePublishableKey='pk_live_wyBQsaPIw6OJOGcR6ajMRqiN';
+	var nekolan_webhookurl='https://wt-928c20363e48533aab7b42b81b5ece88-0.run.webtask.io/stripe-payment';
 
 	var stripe = new Stripe(stripePublishableKey);
 	var elements = stripe.elements();
